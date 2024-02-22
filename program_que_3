@@ -1,0 +1,73 @@
+#include <stdio.h>
+
+struct Process {
+    int process_id;
+    int arrival_time;
+    int burst_time;
+    int completion_time;
+    int turnaround_time;
+    int waiting_time;
+};
+
+void calculateTimes(struct Process processes[], int n) {
+    int current_time = 0;
+    float total_turnaround_time = 0, total_waiting_time = 0;
+
+    for (int i = 0; i < n; i++) {
+        // Completion time for each process
+        if (current_time < processes[i].arrival_time) {
+            current_time = processes[i].arrival_time;
+        }
+        processes[i].completion_time = current_time + processes[i].burst_time;
+
+        // Turnaround time for each process
+        processes[i].turnaround_time = processes[i].completion_time - processes[i].arrival_time;
+
+        // Waiting time for each process
+        processes[i].waiting_time = processes[i].turnaround_time - processes[i].burst_time;
+
+        // Update current time
+        current_time = processes[i].completion_time;
+
+        // Calculate total turnaround and waiting time
+        total_turnaround_time += processes[i].turnaround_time;
+        total_waiting_time += processes[i].waiting_time;
+    }
+
+    // Calculate average turnaround and waiting time
+    float avg_turnaround_time = total_turnaround_time / n;
+    float avg_waiting_time = total_waiting_time / n;
+
+    // Print process details
+    printf("Process\t Arrival Time\t Burst Time\t Completion Time\t Turnaround Time\t Waiting Time\n");
+    for (int i = 0; i < n; i++) {
+        printf("%d\t\t %d\t\t %d\t\t %d\t\t\t %d\t\t\t %d\n", processes[i].process_id, processes[i].arrival_time,
+               processes[i].burst_time, processes[i].completion_time, processes[i].turnaround_time,
+               processes[i].waiting_time);
+    }
+
+    // Print average turnaround and waiting time
+    printf("\nAverage Turnaround Time: %.2f\n", avg_turnaround_time);
+    printf("Average Waiting Time: %.2f\n", avg_waiting_time);
+}
+
+int main() {
+    int n;
+
+    printf("Enter the number of processes: ");
+    scanf("%d", &n);
+
+    struct Process processes[n];
+
+    printf("Enter arrival time and burst time for each process:\n");
+    for (int i = 0; i < n; i++) {
+        processes[i].process_id = i + 1;
+        processes[i].arrival_time = 0; // All processes are activated at time 0
+        printf("Process %d: ", i + 1);
+        scanf("%d %d", &processes[i].arrival_time, &processes[i].burst_time);
+    }
+
+    calculateTimes(processes, n);
+
+    return 0;
+}
