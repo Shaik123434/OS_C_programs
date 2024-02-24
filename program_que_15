@@ -1,0 +1,165 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define MAX_FILES 100
+#define MAX_FILENAME_LENGTH 50
+#define MAX_SUBDIRECTORIES 10
+#define MAX_SUBDIR_NAME_LENGTH 20
+
+typedef struct {
+    char filename[MAX_FILENAME_LENGTH];
+} FileEntry;
+
+typedef struct {
+    char name[MAX_SUBDIR_NAME_LENGTH];
+    FileEntry files[MAX_FILES];
+    int fileCount;
+} Subdirectory;
+
+typedef struct {
+    Subdirectory subdirectories[MAX_SUBDIRECTORIES];
+    int subdirCount;
+} Directory;
+
+Directory mainDirectory;
+
+void initializeDirectory() {
+    mainDirectory.subdirCount = 0;
+}
+
+void displayDirectory() {
+    if (mainDirectory.subdirCount == 0) {
+        printf("Directory is empty.\n");
+        return;
+    }
+
+    printf("Subdirectories in the main directory:\n");
+    for (int i = 0; i < mainDirectory.subdirCount; ++i) {
+        printf("%d. %s\n", i + 1, mainDirectory.subdirectories[i].name);
+    }
+}
+
+int findSubdirectoryIndex(const char* subdirname) {
+    for (int i = 0; i < mainDirectory.subdirCount; ++i) {
+        if (strcmp(mainDirectory.subdirectories[i].name, subdirname) == 0) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+void displaySubdirectoryContents(const char* subdirname) {
+    int subdirIndex = findSubdirectoryIndex(subdirname);
+
+    if (subdirIndex != -1) {
+        Subdirectory* subdirectory = &mainDirectory.subdirectories[subdirIndex];
+        if (subdirectory->fileCount == 0) {
+            printf("Subdirectory is empty.\n");
+        } else {
+            printf("Files in subdirectory '%s':\n", subdirectory->name);
+            for (int i = 0; i < subdirectory->fileCount; ++i) {
+                printf("%d. %s\n", i + 1, subdirectory->files[i].filename);
+            }
+        }
+    } else {
+        printf("Error: Subdirectory '%s' not found.\n", subdirname);
+    }
+}
+
+void addFile(const char* subdirname, const char* filename) {
+    int subdirIndex = findSubdirectoryIndex(subdirname);
+
+    if (subdirIndex != -1) {
+        Subdirectory* subdirectory = &mainDirectory.subdirectories[subdirIndex];
+        if (subdirectory->fileCount < MAX_FILES) {
+            strcpy(subdirectory->files[subdirectory->fileCount].filename, filename);
+            ++subdirectory->fileCount;
+            printf("File '%s' added to subdirectory '%s'.\n", filename, subdirectory->name);
+        } else {
+            printf("Error: Subdirectory '%s' is full. Cannot add file '%s'.\n", subdirectory->name, filename);
+        }
+    } else {
+        printf("Error: Subdirectory '%s' not found. Cannot add file '%s'.\n", subdirname, filename);
+    }
+}
+
+void deleteFile(const char* subdirname, const char* filename) {
+    int subdirIndex = findSubdirectoryIndex(subdirname);
+
+    if (subdirIndex != -1) {
+        Subdirectory* subdirectory = &mainDirectory.subdirectories[subdirIndex];
+        int indexToDelete = -1;
+
+        for (int i = 0; i < subdirectory->fileCount; ++i) {
+            if (strcmp(subdirectory->files[i].filename, filename) == 0) {
+                indexToDelete = i;
+                break;
+            }
+        }
+
+        if (indexToDelete != -1) {
+            for (int i = indexToDelete; i < subdirectory->fileCount - 1; ++i) {
+                strcpy(subdirectory->files[i].filename, subdirectory->files[i + 1].filename);
+            }
+
+            --subdirectory->fileCount;
+            printf("File '%s' deleted from subdirectory '%s'.\n", filename, subdirectory->name);
+        } else {
+            printf("Error: File '%s' not found in subdirectory '%s'.\n", filename, subdirectory->name);
+        }
+    } else {
+        printf("Error: Subdirectory '%s' not found. Cannot delete file '%s'.\n", subdirname, filename);
+    }
+}
+
+int main() {
+    initializeDirectory();
+
+    int choice;
+    char subdirname[MAX_SUBDIR_NAME_LENGTH];
+    char filename[MAX_FILENAME_LENGTH];
+
+    while (1) {
+        printf("\nMenu:\n");
+        printf("1. Display Main Directory\n");
+        printf("2. Display Subdirectory Contents\n");
+        printf("3. Add File\n");
+        printf("4. Delete File\n");
+        printf("5. Exit\n");
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+
+        switch (choice) {
+            case 1:
+                displayDirectory();
+                break;
+            case 2:
+                printf("Enter subdirectory name: ");
+                scanf("%s", subdirname);
+                displaySubdirectoryContents(subdirname);
+                break;
+            case 3:
+                printf("Enter subdirectory name: ");
+                scanf("%s", subdirname);
+                printf("Enter filename to add: ");
+                scanf("%s", filename);
+                addFile(subdirname, filename);
+                break;
+            case 4:
+                printf("Enter subdirectory name: ");
+                scanf("%s", subdirname);
+                printf("Enter filename to delete: ");
+                scanf("%s", filename);
+                deleteFile(subdirname, filename);
+                break;
+            case 5:
+                printf("Exiting the program.\n");
+                exit(0);
+            default:
+                printf("Invalid choice. Please enter a valid option.\n");
+        }
+    }
+
+    return 0;
+}
