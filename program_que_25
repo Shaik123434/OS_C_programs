@@ -1,0 +1,131 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <dirent.h>
+
+void demonstrateFcntl(const char* filename) {
+    int fd = open(filename, O_RDWR);
+
+    if (fd == -1) {
+        perror("Error opening file");
+        exit(EXIT_FAILURE);
+    }
+
+    // Set file status flags using fcntl
+    int flags = fcntl(fd, F_GETFL, 0);
+    if (flags == -1) {
+        perror("Error getting file flags");
+        close(fd);
+        exit(EXIT_FAILURE);
+    }
+
+    printf("File Flags before modification: %d\n", flags);
+
+    flags |= O_APPEND; // Append mode
+    if (fcntl(fd, F_SETFL, flags) == -1) {
+        perror("Error setting file flags");
+        close(fd);
+        exit(EXIT_FAILURE);
+    }
+
+    printf("File Flags after modification: %d\n", flags);
+
+    close(fd);
+}
+
+void demonstrateSeek(const char* filename) {
+    int fd = open(filename, O_RDONLY);
+
+    if (fd == -1) {
+        perror("Error opening file");
+        exit(EXIT_FAILURE);
+    }
+
+    // Read and display the content of the file
+    char buffer[1024];
+    ssize_t bytesRead = read(fd, buffer, sizeof(buffer));
+
+    if (bytesRead == -1) {
+        perror("Error reading file");
+        close(fd);
+        exit(EXIT_FAILURE);
+    }
+
+    printf("File Content:\n");
+    write(STDOUT_FILENO, buffer, bytesRead);
+
+    // Use lseek to move the file offset to the beginning
+    lseek(fd, 0, SEEK_SET);
+
+    // Read and display the content again
+    bytesRead = read(fd, buffer, sizeof(buffer));
+
+    if (bytesRead == -1) {
+        perror("Error reading file");
+        close(fd);
+        exit(EXIT_FAILURE);
+    }
+
+    printf("\nFile Content after seeking:\n");
+    write(STDOUT_FILENO, buffer, bytesRead);
+
+    close(fd);
+}
+
+void demonstrateStat(const char* filename) {
+    struct stat fileInfo;
+
+    if (stat(filename, &fileInfo) == -1) {
+        perror("Error getting file information");
+        exit(EXIT_FAILURE);
+    }
+
+    printf("File Information:\n");
+    printf("Size: %ld bytes\n", fileInfo.st_size);
+    printf("Mode: %o\n", fileInfo.st_mode);
+    printf("Number of Links: %ld\n", fileInfo.st_nlink);
+    printf("User ID of Owner: %d\n", fileInfo.st_uid);
+    printf("Group ID of Owner: %d\n", fileInfo.st_gid);
+    printf("Device ID (if special file): %ld\n", fileInfo.st_rdev);
+}
+
+void demonstrateDir(const char* dirname) {
+    DIR* dir = opendir(dirname);
+
+    if (dir == NULL) {
+        perror("Error opening directory");
+        exit(EXIT_FAILURE);
+    }
+
+    printf("Contents of Directory '%s':\n", dirname);
+
+    struct dirent* entry;
+
+    while ((entry = readdir(dir)) != NULL) {
+        printf("%s\n", entry->d_name);
+    }
+
+    closedir(dir);
+}
+
+int main() {
+    const char* filename = "example_file.txt";
+    const char* dirname = "."; // Current directory
+
+    printf("Demonstrating fcntl:\n");
+    demonstrateFcntl(filename);
+
+    printf("\nDemonstrating seek:\n");
+    demonstrateSeek(filename);
+
+    printf("\nDemonstrating stat:\n");
+    demonstrateStat(filename);
+
+    printf("\nDemonstrating opendir and readdir:\n");
+    demonstrateDir(dirname);
+
+    return 0;
+}
