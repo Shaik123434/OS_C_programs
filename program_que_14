@@ -1,0 +1,95 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define MAX_FILES 100
+#define MAX_FILENAME_LENGTH 50
+
+typedef struct {
+    char filename[MAX_FILENAME_LENGTH];
+} FileEntry;
+
+FileEntry directory[MAX_FILES];
+int fileCount = 0;
+
+void displayDirectory() {
+    if (fileCount == 0) {
+        printf("Directory is empty.\n");
+        return;
+    }
+
+    printf("Files in the directory:\n");
+    for (int i = 0; i < fileCount; ++i) {
+        printf("%d. %s\n", i + 1, directory[i].filename);
+    }
+}
+
+void addFile(const char* filename) {
+    if (fileCount < MAX_FILES) {
+        strcpy(directory[fileCount].filename, filename);
+        ++fileCount;
+        printf("File '%s' added to the directory.\n", filename);
+    } else {
+        printf("Error: Directory is full. Cannot add file '%s'.\n", filename);
+    }
+}
+
+void deleteFile(const char* filename) {
+    int indexToDelete = -1;
+
+    for (int i = 0; i < fileCount; ++i) {
+        if (strcmp(directory[i].filename, filename) == 0) {
+            indexToDelete = i;
+            break;
+        }
+    }
+
+    if (indexToDelete != -1) {
+        for (int i = indexToDelete; i < fileCount - 1; ++i) {
+            strcpy(directory[i].filename, directory[i + 1].filename);
+        }
+
+        --fileCount;
+        printf("File '%s' deleted from the directory.\n", filename);
+    } else {
+        printf("Error: File '%s' not found in the directory.\n", filename);
+    }
+}
+
+int main() {
+    int choice;
+    char filename[MAX_FILENAME_LENGTH];
+
+    while (1) {
+        printf("\nMenu:\n");
+        printf("1. Display Directory\n");
+        printf("2. Add File\n");
+        printf("3. Delete File\n");
+        printf("4. Exit\n");
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+
+        switch (choice) {
+            case 1:
+                displayDirectory();
+                break;
+            case 2:
+                printf("Enter filename to add: ");
+                scanf("%s", filename);
+                addFile(filename);
+                break;
+            case 3:
+                printf("Enter filename to delete: ");
+                scanf("%s", filename);
+                deleteFile(filename);
+                break;
+            case 4:
+                printf("Exiting the program.\n");
+                exit(0);
+            default:
+                printf("Invalid choice. Please enter a valid option.\n");
+        }
+    }
+
+    return 0;
+}
