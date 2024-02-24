@@ -1,0 +1,71 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <dirent.h>
+#include <sys/stat.h>
+#include <string.h>
+#include <pwd.h>
+#include <grp.h>
+#include <time.h>
+
+void listDirectoryContents(const char *path) {
+    DIR *dir = opendir(path);
+
+    if (dir == NULL) {
+        perror("Error opening directory");
+        exit(EXIT_FAILURE);
+    }
+
+    struct dirent *entry;
+
+    while ((entry = readdir(dir)) != NULL) {
+        char fullpath[1024];
+        snprintf(fullpath, sizeof(fullpath), "%s/%s", path, entry->d_name);
+
+        struct stat fileStat;
+        if (stat(fullpath, &fileStat) == -1) {
+            perror("Error getting file information");
+            exit(EXIT_FAILURE);
+        }
+
+        printf("File: %-20s", entry->d_name);
+        printf("Size: %-10ld", fileStat.st_size);
+
+        struct passwd *pw = getpwuid(fileStat.st_uid);
+        struct group *gr = getgrgid(fileStat.st_gid);
+
+        printf("Owner: %-10s", pw ? pw->pw_name : "Unknown");
+        printf("Group: %-10s", gr ? gr->gr_name : "Unknown");
+
+        char *timeStr = ctime(&fileStat.st_mtime);
+        timeStr[strlen(timeStr) - 1] = '\0'; // Remove the newline character at the end
+
+        printf("Last Modified: %s", timeStr);
+
+        if (S_ISDIR(fileStat.st_mode)) {
+            printf("Type: Directory\n");
+        } else if (S_ISREG(fileStat.st_mode)) {
+            printf("Type: Regular File\n");
+        } else {
+            printf("Type: Other\n");
+        }
+    }
+
+    closedir(dir);
+}
+
+int main() {
+    char path[1024];
+
+    printf("Enter the directory path (press Enter for current directory): ");
+    fgets(path, sizeof(path), stdin);
+    path[strlen(path) - 1] = '\0'; // Remove the newline character
+
+    if (strlen(path) == 0) {
+        // If no path is provided, use the current directory
+        listDirectoryContents(".");
+    } else {
+        listDirectoryContents(path);
+    }
+
+    return 0;
+}
