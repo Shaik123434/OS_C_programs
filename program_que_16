@@ -1,0 +1,153 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#define FILENAME "employee_records.dat"
+#define MAX_EMPLOYEES 100
+
+typedef struct {
+    int id;
+    char name[50];
+    float salary;
+} Employee;
+
+void addEmployee() {
+    FILE *file = fopen(FILENAME, "ab");
+    if (file == NULL) {
+        perror("Error opening file");
+        exit(EXIT_FAILURE);
+    }
+
+    Employee employee;
+    printf("Enter employee details:\n");
+    printf("ID: ");
+    scanf("%d", &employee.id);
+    printf("Name: ");
+    scanf("%s", employee.name);
+    printf("Salary: ");
+    scanf("%f", &employee.salary);
+
+    fseek(file, (employee.id - 1) * sizeof(Employee), SEEK_SET);
+    fwrite(&employee, sizeof(Employee), 1, file);
+
+    fclose(file);
+    printf("Employee added successfully.\n");
+}
+
+void displayEmployee(int id) {
+    FILE *file = fopen(FILENAME, "rb");
+    if (file == NULL) {
+        perror("Error opening file");
+        exit(EXIT_FAILURE);
+    }
+
+    Employee employee;
+    fseek(file, (id - 1) * sizeof(Employee), SEEK_SET);
+    fread(&employee, sizeof(Employee), 1, file);
+
+    if (employee.id != 0) {
+        printf("Employee Details:\n");
+        printf("ID: %d\n", employee.id);
+        printf("Name: %s\n", employee.name);
+        printf("Salary: %.2f\n", employee.salary);
+    } else {
+        printf("Employee with ID %d not found.\n", id);
+    }
+
+    fclose(file);
+}
+
+void updateEmployee(int id) {
+    FILE *file = fopen(FILENAME, "rb+");
+    if (file == NULL) {
+        perror("Error opening file");
+        exit(EXIT_FAILURE);
+    }
+
+    Employee employee;
+    fseek(file, (id - 1) * sizeof(Employee), SEEK_SET);
+    fread(&employee, sizeof(Employee), 1, file);
+
+    if (employee.id != 0) {
+        printf("Enter updated details for employee with ID %d:\n", id);
+        printf("Name: ");
+        scanf("%s", employee.name);
+        printf("Salary: ");
+        scanf("%f", &employee.salary);
+
+        fseek(file, (id - 1) * sizeof(Employee), SEEK_SET);
+        fwrite(&employee, sizeof(Employee), 1, file);
+
+        printf("Employee details updated successfully.\n");
+    } else {
+        printf("Employee with ID %d not found.\n", id);
+    }
+
+    fclose(file);
+}
+
+void deleteEmployee(int id) {
+    FILE *file = fopen(FILENAME, "rb+");
+    if (file == NULL) {
+        perror("Error opening file");
+        exit(EXIT_FAILURE);
+    }
+
+    Employee employee;
+    fseek(file, (id - 1) * sizeof(Employee), SEEK_SET);
+    fread(&employee, sizeof(Employee), 1, file);
+
+    if (employee.id != 0) {
+        employee.id = 0; // Mark as deleted
+        fseek(file, (id - 1) * sizeof(Employee), SEEK_SET);
+        fwrite(&employee, sizeof(Employee), 1, file);
+
+        printf("Employee with ID %d deleted successfully.\n", id);
+    } else {
+        printf("Employee with ID %d not found.\n", id);
+    }
+
+    fclose(file);
+}
+
+int main() {
+    int choice, id;
+
+    while (1) {
+        printf("\nMenu:\n");
+        printf("1. Add Employee\n");
+        printf("2. Display Employee\n");
+        printf("3. Update Employee\n");
+        printf("4. Delete Employee\n");
+        printf("5. Exit\n");
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+
+        switch (choice) {
+            case 1:
+                addEmployee();
+                break;
+            case 2:
+                printf("Enter employee ID to display: ");
+                scanf("%d", &id);
+                displayEmployee(id);
+                break;
+            case 3:
+                printf("Enter employee ID to update: ");
+                scanf("%d", &id);
+                updateEmployee(id);
+                break;
+            case 4:
+                printf("Enter employee ID to delete: ");
+                scanf("%d", &id);
+                deleteEmployee(id);
+                break;
+            case 5:
+                printf("Exiting the program.\n");
+                exit(0);
+            default:
+                printf("Invalid choice. Please enter a valid option.\n");
+        }
+    }
+
+    return 0;
+}
