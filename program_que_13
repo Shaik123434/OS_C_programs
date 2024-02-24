@@ -1,0 +1,170 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#define MEMORY_SIZE 1000
+
+typedef struct Block {
+    int size;
+    int allocated;
+    struct Block* next;
+} Block;
+
+Block* memoryPool;
+
+void initializeMemoryPool() {
+    memoryPool = (Block*)malloc(sizeof(Block));
+    memoryPool->size = MEMORY_SIZE;
+    memoryPool->allocated = 0;
+    memoryPool->next = NULL;
+}
+
+void* firstFit(int size) {
+    Block* current = memoryPool;
+    while (current) {
+        if (!current->allocated && current->size >= size) {
+            // Allocate memory
+            current->allocated = 1;
+            if (current->size > size) {
+                // Split the block if it's larger than needed
+                Block* newBlock = (Block*)malloc(sizeof(Block));
+                newBlock->size = current->size - size;
+                newBlock->allocated = 0;
+                newBlock->next = current->next;
+                current->next = newBlock;
+                current->size = size;
+            }
+            return (void*)(current + 1); // Return the address after the block structure
+        }
+        current = current->next;
+    }
+    return NULL; // No suitable block found
+}
+
+void* bestFit(int size) {
+    Block* current = memoryPool;
+    Block* bestFitBlock = NULL;
+    while (current) {
+        if (!current->allocated && current->size >= size) {
+            if (!bestFitBlock || current->size < bestFitBlock->size) {
+                bestFitBlock = current;
+            }
+        }
+        current = current->next;
+    }
+    if (bestFitBlock) {
+        // Allocate memory
+        bestFitBlock->allocated = 1;
+        if (bestFitBlock->size > size) {
+            // Split the block if it's larger than needed
+            Block* newBlock = (Block*)malloc(sizeof(Block));
+            newBlock->size = bestFitBlock->size - size;
+            newBlock->allocated = 0;
+            newBlock->next = bestFitBlock->next;
+            bestFitBlock->next = newBlock;
+            bestFitBlock->size = size;
+        }
+        return (void*)(bestFitBlock + 1); // Return the address after the block structure
+    }
+    return NULL; // No suitable block found
+}
+
+void* worstFit(int size) {
+    Block* current = memoryPool;
+    Block* worstFitBlock = NULL;
+    while (current) {
+        if (!current->allocated && current->size >= size) {
+            if (!worstFitBlock || current->size > worstFitBlock->size) {
+                worstFitBlock = current;
+            }
+        }
+        current = current->next;
+    }
+    if (worstFitBlock) {
+        // Allocate memory
+        worstFitBlock->allocated = 1;
+        if (worstFitBlock->size > size) {
+            // Split the block if it's larger than needed
+            Block* newBlock = (Block*)malloc(sizeof(Block));
+            newBlock->size = worstFitBlock->size - size;
+            newBlock->allocated = 0;
+            newBlock->next = worstFitBlock->next;
+            worstFitBlock->next = newBlock;
+            worstFitBlock->size = size;
+        }
+        return (void*)(worstFitBlock + 1); // Return the address after the block structure
+    }
+    return NULL; // No suitable block found
+}
+
+void deallocate(void* ptr) {
+    if (!ptr) {
+        return; // Nothing to deallocate
+    }
+
+    // Find the block structure and mark it as deallocated
+    Block* block = (Block*)((char*)ptr - sizeof(Block));
+    block->allocated = 0;
+
+    // Merge consecutive free blocks
+    Block* current = memoryPool;
+    while (current && current->next) {
+        if (!current->allocated && !current->next->allocated) {
+            current->size += current->next->size + sizeof(Block);
+            current->next = current->next->next;
+        } else {
+            current = current->next;
+        }
+    }
+}
+
+void displayMemory() {
+    Block* current = memoryPool;
+    while (current) {
+        printf("Block: Size=%d, Allocated=%s\n", current->size, current->allocated ? "Yes" : "No");
+        current = current->next;
+    }
+    printf("----------------------\n");
+}
+
+int main() {
+    initializeMemoryPool();
+
+    // Allocate memory using First Fit
+    printf("First Fit Allocation:\n");
+    void* firstFitBlock1 = firstFit(200);
+    void* firstFitBlock2 = firstFit(300);
+    displayMemory();
+
+    // Deallocate and display
+    deallocate(firstFitBlock1);
+    deallocate(firstFitBlock2);
+    printf("After Deallocation:\n");
+    displayMemory();
+
+    // Allocate memory using Best Fit
+    printf("Best Fit Allocation:\n");
+    void* bestFitBlock1 = bestFit(150);
+    void* bestFitBlock2 = bestFit(250);
+    displayMemory();
+
+    // Deallocate and display
+    deallocate(bestFitBlock1);
+    deallocate(bestFitBlock2);
+    printf("After Deallocation:\n");
+    displayMemory();
+
+    // Allocate memory using Worst Fit
+    printf("Worst Fit Allocation:\n");
+    void* worstFitBlock1 = worstFit(180);
+    void* worstFitBlock2 = worstFit(280);
+    displayMemory();
+
+    // Deallocate and display
+    deallocate(worstFitBlock1);
+    deallocate(worstFitBlock2);
+    printf("After Deallocation:\n");
+    displayMemory();
+
+    free(memoryPool); // Free the entire memory pool before exiting
+    return 0;
+}
