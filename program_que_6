@@ -1,0 +1,88 @@
+#include <stdio.h>
+
+struct Process {
+    int id;             // Process ID
+    int arrival_time;   // Arrival time
+    int burst_time;     // Burst time
+    int priority;       // Priority
+    int remaining_time; // Remaining burst time
+};
+
+void swap(struct Process *xp, struct Process *yp) {
+    struct Process temp = *xp;
+    *xp = *yp;
+    *yp = temp;
+}
+
+// Function to perform bubble sort on processes based on priority
+void sort_by_priority(struct Process processes[], int n) {
+    for (int i = 0; i < n-1; i++)
+        for (int j = 0; j < n-i-1; j++)
+            if (processes[j].priority < processes[j+1].priority)
+                swap(&processes[j], &processes[j+1]);
+}
+
+// Function to perform preemptive priority scheduling
+void priority_scheduling(struct Process processes[], int n) {
+    sort_by_priority(processes, n);
+
+    int total_time = 0;
+
+    for (int i = 0; i < n; i++)
+        total_time += processes[i].burst_time;
+
+    int time_chart[total_time];
+
+    for (int t = 0, i = 0; t < total_time; t++) {
+        int highest_priority = -1;
+        int index = -1;
+
+        // Find the process with the highest priority at time 't'
+        for (int j = 0; j < n; j++) {
+            if (processes[j].arrival_time <= t && processes[j].remaining_time > 0 &&
+                (highest_priority == -1 || processes[j].priority > highest_priority)) {
+                highest_priority = processes[j].priority;
+                index = j;
+            }
+        }
+
+        // Update the remaining time of the selected process
+        processes[index].remaining_time--;
+
+        // Store the process ID in the time chart
+        time_chart[t] = processes[index].id;
+
+        // If the process is completed, update its turnaround time
+        if (processes[index].remaining_time == 0)
+            processes[index].remaining_time = -1;
+    }
+
+    // Display the time chart
+    printf("Time Chart:\n");
+    for (int t = 0; t < total_time; t++)
+        printf("P%d ", time_chart[t]);
+
+    // Display the turnaround time for each process
+    printf("\nTurnaround Time:\n");
+    for (int i = 0; i < n; i++)
+        printf("P%d: %d\n", processes[i].id, total_time - processes[i].arrival_time);
+}
+
+int main() {
+    int n;
+    printf("Enter the number of processes: ");
+    scanf("%d", &n);
+
+    struct Process processes[n];
+
+    for (int i = 0; i < n; i++) {
+        processes[i].id = i + 1;
+        printf("Enter arrival time, burst time, and priority for process P%d: ", i + 1);
+        scanf("%d %d %d", &processes[i].arrival_time, &processes[i].burst_time, &processes[i].priority);
+        processes[i].remaining_time = processes[i].burst_time;
+    }
+
+    priority_scheduling(processes, n);
+
+    return 0;
+}
