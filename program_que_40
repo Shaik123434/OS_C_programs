@@ -1,0 +1,47 @@
+#include <stdio.h>
+
+// Function to simulate C-SCAN disk scheduling algorithm
+void cscan(int requests[], int n, int start, int maxCylinder) {
+    printf("Sequence of Service:\n");
+
+    int current = start;
+
+    // Moving towards higher cylinder numbers
+    for (int i = current; i <= maxCylinder; i++) {
+        printf("%d ", i);
+    }
+
+    // Moving to the beginning of the disk
+    printf("0 ");
+
+    // Moving towards higher cylinder numbers again
+    for (int i = 1; i <= start; i++) {
+        printf("%d ", i);
+    }
+
+    printf("\n");
+}
+
+int main() {
+    int n, start, maxCylinder;
+
+    printf("Enter the number of disk requests: ");
+    scanf("%d", &n);
+
+    int requests[n];
+
+    printf("Enter the disk request sequence:\n");
+    for (int i = 0; i < n; i++) {
+        scanf("%d", &requests[i]);
+    }
+
+    printf("Enter the starting cylinder: ");
+    scanf("%d", &start);
+
+    printf("Enter the maximum cylinder number: ");
+    scanf("%d", &maxCylinder);
+
+    cscan(requests, n, start, maxCylinder);
+
+    return 0;
+}
