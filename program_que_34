@@ -1,0 +1,51 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#define MAX_RECORDS 100
+
+// Structure to represent a file
+struct File {
+    int records[MAX_RECORDS];
+    int numRecords;
+};
+
+// Function to initialize a file with random records
+void initializeFile(struct File *file, int numRecords) {
+    file->numRecords = numRecords;
+    for (int i = 0; i < numRecords; ++i) {
+        file->records[i] = rand() % 1000; // Assigning random values for demonstration
+    }
+}
+
+// Function to display all records of the file
+void displayFile(struct File *file) {
+    printf("File Records:\n");
+    for (int i = 0; i < file->numRecords; ++i) {
+        printf("%d ", file->records[i]);
+    }
+    printf("\n");
+}
+
+// Function to read a record from the file
+void readRecord(struct File *file, int recordNumber) {
+    if (recordNumber >= 0 && recordNumber < file->numRecords) {
+        printf("Read Record %d: %d\n", recordNumber, file->records[recordNumber]);
+    } else {
+        printf("Record %d does not exist.\n", recordNumber);
+    }
+}
+
+int main() {
+    struct File myFile;
+    int numRecords = 10; // Change this to the desired number of records
+
+    initializeFile(&myFile, numRecords);
+    displayFile(&myFile);
+
+    // Simulate reading each record sequentially
+    for (int i = 0; i < numRecords; ++i) {
+        readRecord(&myFile, i);
+    }
+
+    return 0;
+}
