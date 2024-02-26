@@ -1,0 +1,55 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#define MAX_BLOCKS 100
+
+// Function to allocate a block for a file
+int allocateBlock(int indexBlock[], int fileSize, int currentBlock) {
+    if (currentBlock >= fileSize) {
+        printf("File allocation completed.\n");
+        return -1;  // Allocation completed
+    }
+
+    int nextBlock = indexBlock[currentBlock];
+
+    if (nextBlock == -1) {
+        printf("Allocating block %d for the file.\n", currentBlock);
+        indexBlock[currentBlock] = currentBlock + 1;
+        return currentBlock;
+    } else {
+        printf("Block %d already allocated. Trying the next block.\n", currentBlock);
+        return allocateBlock(indexBlock, fileSize, nextBlock);
+    }
+}
+
+// Function to display the allocated blocks for a file
+void displayAllocation(int indexBlock[]) {
+    printf("Allocated Blocks: ");
+    for (int i = 0; i < MAX_BLOCKS; i++) {
+        if (indexBlock[i] != -1) {
+            printf("%d ", i);
+        }
+    }
+    printf("\n");
+}
+
+int main() {
+    int indexBlock[MAX_BLOCKS];
+    int fileSize, currentBlock;
+
+    // Initializing index block with -1 (indicating no allocation)
+    for (int i = 0; i < MAX_BLOCKS; i++) {
+        indexBlock[i] = -1;
+    }
+
+    printf("Enter the size of the file: ");
+    scanf("%d", &fileSize);
+
+    // Allocating blocks for the file
+    currentBlock = allocateBlock(indexBlock, fileSize, 0);
+
+    // Displaying the allocated blocks
+    displayAllocation(indexBlock);
+
+    return 0;
+}
