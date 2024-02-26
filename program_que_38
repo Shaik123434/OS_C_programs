@@ -1,0 +1,55 @@
+#include <stdio.h>
+
+// Function to simulate SCAN disk scheduling algorithm
+void scan(int requests[], int n, int start) {
+    printf("Sequence of Service:\n");
+
+    int direction = 1; // 1 for moving towards higher cylinder numbers, -1 for lower
+    int current = start;
+
+    while (1) {
+        if (direction == 1) {
+            for (int i = current; i <= n; i++) {
+                if (i == n) {
+                    direction = -1;
+                    break;
+                }
+                printf("%d ", requests[i]);
+            }
+        } else {
+            for (int i = current - 1; i >= 0; i--) {
+                if (i < 0) {
+                    direction = 1;
+                    break;
+                }
+                printf("%d ", requests[i]);
+            }
+        }
+
+        if (direction == 1)
+            break;
+    }
+
+    printf("\n");
+}
+
+int main() {
+    int n, start;
+
+    printf("Enter the number of disk requests: ");
+    scanf("%d", &n);
+
+    int requests[n];
+
+    printf("Enter the disk request sequence:\n");
+    for (int i = 0; i < n; i++) {
+        scanf("%d", &requests[i]);
+    }
+
+    printf("Enter the starting cylinder: ");
+    scanf("%d", &start);
+
+    scan(requests, n, start);
+
+    return 0;
+}
